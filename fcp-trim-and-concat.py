@@ -1,4 +1,5 @@
 import subprocess
+import json
 
 output_file = "out.mp4"
 
@@ -16,12 +17,28 @@ filter_complex_command = """
                         [0v][0audio_merged][1v][1audio_merged]concat=n=2:v=1:a=1[outv][outa]
                         """
 
-def run_FFmpeg(input_file):
+def get_stream_info_json(input_file):
+    stream_info_string = subprocess.run(
+        ['ffprobe',
+        '-loglevel',
+        'error',
+        '-show_entries',
+        'stream=index,codec_type',
+        '-of', 'json',
+        input_file],
+        capture_output=True
+        ).stdout
+
+    return json.loads(stream_info_string)
+
+def run_ffmpeg(input_file):
     subprocess.run(['ffmpeg', "-i", input_file, "-filter_complex", filter_complex_command, "-map", "[outv]", "-map", "[outa]", "-y", output_file])
 
 def main():
     input_file = input("Enter file path: ")
-    run_FFmpeg(input_file)
+    stream_info_dict = get_stream_info_json(input_file)
+    print(stream_info_dict)
+    # run_ffmpeg(input_file)
 
 if __name__ == "__main__":
     main()
