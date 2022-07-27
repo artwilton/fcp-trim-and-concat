@@ -17,16 +17,34 @@ filter_complex_command = """
                         [0v][0audio_merged][1v][1audio_merged]concat=n=2:v=1:a=1[outv][outa]
                         """
 
+example_dict = {
+    1:1,
+    2:2
+}
+
+def build_trim_string(stream_index, in_point, end_point, clip_number, video_clip=True):
+    a_check = None if video_clip else 'a'
+    format_check = 'format=yuv420p' if video_clip else None
+    trim_string = f"""
+    [0:{stream_index}]{a_check}trim=start='{in_point}':end='{end_point},
+    {a_check}setpts=PTS-STARTPTS,{format_check}[clip_{clip_number}_video_stream_{stream_index}]'
+    """ 
+    return trim_string
+
 def build_ffmpeg_filter(stream_info, timecode_list):
     ffmpeg_filter_string = ""
 
-def format_video_trim_string(stream_index, in_point, end_point, clip_number):
-    video_trim_string = f"[0:{stream_index}]trim=start='{in_point}':end='{end_point}', setpts=PTS-STARTPTS, format=yuv420p[clip_{clip_number}_video_stream_{stream_index}]"
-    return video_trim_string
+# def format_video_trim_string(stream_index, in_point, end_point, clip_number):
+#     video_trim_string = f"[0:{stream_index}]trim=start='{in_point}':end='{end_point}', setpts=PTS-STARTPTS, format=yuv420p[clip_{clip_number}_video_stream_{stream_index}]"
+#     return video_trim_string
 
-def format_audio_trim_string(stream_index, in_point, end_point, clip_number):
-    audio_trim_string = f"[0:{stream_index}]atrim=start='{in_point}':end='{end_point}', asetpts=PTS-STARTPTS[clip_{clip_number}_audio_stream_{stream_index}]"
-    return audio_trim_string    
+# def format_audio_trim_string(stream_index, in_point, end_point, clip_number):
+#     audio_trim_string = f"[0:{stream_index}]atrim=start='{in_point}':end='{end_point}', asetpts=PTS-STARTPTS[clip_{clip_number}_audio_stream_{stream_index}]"
+#     return audio_trim_string  
+
+def merge_audio_streams(audio_input_list, clip_number):
+
+    merged_stream = f"[0audio_left][0audio_right]amerge=inputs={len(audio_input_list)} [{clip_number}audio_merged];"
 
 
 def get_stream_info_json(input_file):
