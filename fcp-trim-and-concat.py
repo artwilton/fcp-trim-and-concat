@@ -3,7 +3,7 @@ import json
 
 output_file = "out.mp4"
 
-# timecode_list = ['00\:00\:08.400', '00\:37\:49.767', '00\:37\:56.733', '00\:45\:28.167']
+timecode_list = ['00\:00\:08.400', '00\:37\:49.767', '00\:37\:56.733', '00\:45\:28.167']
 
 filter_complex_command = """
                         [0:v]trim=start='00\:00\:08.400':end='00\:01\:49.767', setpts=PTS-STARTPTS, format=yuv420p[0v];
@@ -16,6 +16,18 @@ filter_complex_command = """
                         [1audio_left][1audio_right]amerge=inputs=2 [1audio_merged];
                         [0v][0audio_merged][1v][1audio_merged]concat=n=2:v=1:a=1[outv][outa]
                         """
+
+def build_ffmpeg_filter(stream_info, timecode_list):
+    ffmpeg_filter_string = ""
+
+def format_video_trim_string(stream_index, in_point, end_point, clip_number):
+    video_trim_string = f"[0:{stream_index}]trim=start='{in_point}':end='{end_point}', setpts=PTS-STARTPTS, format=yuv420p[clip_{clip_number}_video_stream_{stream_index}]"
+    return video_trim_string
+
+def format_audio_trim_string(stream_index, in_point, end_point, clip_number):
+    audio_trim_string = f"[0:{stream_index}]atrim=start='{in_point}':end='{end_point}', asetpts=PTS-STARTPTS[clip_{clip_number}_audio_stream_{stream_index}]"
+    return audio_trim_string    
+
 
 def get_stream_info_json(input_file):
     stream_info_string = subprocess.run(
@@ -37,7 +49,8 @@ def run_ffmpeg(input_file):
 def main():
     input_file = input("Enter file path: ")
     stream_info_dict = get_stream_info_json(input_file)
-    print(stream_info_dict)
+    build_ffmpeg_filter(stream_info_dict, timecode_list)
+    # print(stream_info_dict)
     # run_ffmpeg(input_file)
 
 if __name__ == "__main__":
