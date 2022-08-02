@@ -57,11 +57,10 @@ def build_ffmpeg_filter(timecode_list, stream_info, merge_audio=True):
 def build_trim_string(stream_index, in_point, out_point, codec_type):
     a_check = 'a' if codec_type == 'audio' else ''
     format_check = ',format=yuv420p' if codec_type == 'video' else ''
-    trim_string = f"""
-    [0:{stream_index}]{a_check}trim=start='{in_point}':end='{out_point},
-    {a_check}setpts=PTS-STARTPTS
-    {format_check}
-    """ 
+    trim_string = ( f"[0:{stream_index}]{a_check}trim=start='{in_point}':end='{out_point},"
+                    f"{a_check}setpts=PTS-STARTPTS"
+                    f"{format_check}"
+    )
     return trim_string
 
 def build_label_string(clip_number, codec_type, stream_index):
