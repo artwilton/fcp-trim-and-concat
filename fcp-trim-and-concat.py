@@ -2,24 +2,11 @@ import subprocess
 import json
 from collections import namedtuple
 
-output_file = "out.mp4"
-
 TimecodePair = namedtuple("TimecodePair", "in_point out_point")
 Filter = namedtuple("Filter", "arguments label")
 
-timecode_list = [TimecodePair('00\:00\:08.400', '00\:37\:49.767'), TimecodePair('00\:37\:56.733', '00\:45\:28.167')]
-
-filter_complex_command = """
-                        [0:v]trim=start='00\:00\:08.400':end='00\:01\:49.767', setpts=PTS-STARTPTS, format=yuv420p[0v];
-                        [0:1]atrim=start='00\:00\:08.400':end='00\:01\:49.767', asetpts=PTS-STARTPTS[0audio_left];
-                        [0:2]atrim=start='00\:00\:08.400':end='00\:01\:49.767', asetpts=PTS-STARTPTS[0audio_right];
-                        [0audio_left][0audio_right]amerge=inputs=2 [0audio_merged];
-                        [0:v]trim=start='00\:03\:59.000':end='00\:04\:28.167', setpts=PTS-STARTPTS, format=yuv420p[1v];
-                        [0:1]atrim=start='00\:03\:59.000':end='00\:04\:28.167', asetpts=PTS-STARTPTS[1audio_left];
-                        [0:2]atrim=start='00\:03\:59.000':end='00\:04\:28.167', asetpts=PTS-STARTPTS[1audio_right];
-                        [1audio_left][1audio_right]amerge=inputs=2 [1audio_merged];
-                        [0v][0audio_merged][1v][1audio_merged]concat=n=2:v=1:a=1[outv][outa]
-                        """
+output_file = "out.mp4"
+timecode_list = [TimecodePair('00\:37\:58.967', '00\:45\:30.900')]
 
 def build_ffmpeg_filter(timecode_list, stream_info, merge_audio=True):
 
@@ -35,7 +22,7 @@ def build_ffmpeg_filter(timecode_list, stream_info, merge_audio=True):
             trim_string = build_trim_string(current_stream_index, timecode.in_point, timecode.out_point, codec_type)
             label_string = build_label_string(clip_number, codec_type, current_stream_index)
             filter_command = Filter(trim_string, label_string)
-            filter_commands_list.append(filter_command)
+            filter_commands_list.append(''.join(filter_command))
             
             if (codec_type == 'audio') and (merge_audio):
                 audio_merge_list.append(filter_command.label)
@@ -57,7 +44,7 @@ def build_ffmpeg_filter(timecode_list, stream_info, merge_audio=True):
 def build_trim_string(stream_index, in_point, out_point, codec_type):
     a_check = 'a' if codec_type == 'audio' else ''
     format_check = ',format=yuv420p' if codec_type == 'video' else ''
-    trim_string = ( f"[0:{stream_index}]{a_check}trim=start='{in_point}':end='{out_point},"
+    trim_string = ( f"[0:{stream_index}]{a_check}trim=start='{in_point}':end='{out_point}',"
                     f"{a_check}setpts=PTS-STARTPTS"
                     f"{format_check}"
     )
@@ -85,14 +72,15 @@ def get_stream_info_json(input_file):
 
     return json.loads(stream_info_string)
 
-def run_ffmpeg(input_file):
-    subprocess.run(['ffmpeg', "-i", input_file, "-filter_complex", filter_complex_command, "-map", "[outv]", "-map", "[outa]", "-y", output_file])
+def run_ffmpeg(input_file, filter_complex_string):
+    subprocess.run(['ffmpeg', "-i", input_file, "-filter_complex", filter_complex_string, "-map", "[outv]", "-map", "[outa]", "-y", output_file])
 
 def main():
     input_file = input("Enter file path: ")
     stream_info_dict = get_stream_info_json(input_file)
-    build_ffmpeg_filter(timecode_list, stream_info_dict['streams'])
-    # run_ffmpeg(input_file)
+    filter_complex_list = build_ffmpeg_filter(timecode_list, stream_info_dict['streams'])
+    filter_complex_string = (';'.join(filter_complex_list))
+    run_ffmpeg(input_file, filter_complex_string)
 
 if __name__ == "__main__":
     main()
