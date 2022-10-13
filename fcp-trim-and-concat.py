@@ -6,7 +6,11 @@ TimecodePair = namedtuple("TimecodePair", "in_point out_point")
 Filter = namedtuple("Filter", "arguments label")
 
 output_file = "out.mp4"
-timecode_list = [TimecodePair('00\:37\:58.967', '00\:45\:30.900')]
+# Fractional Timecode Example
+# timecode_list = [TimecodePair('00\:37\:58.967', '00\:45\:30.900')]
+
+# Rational Frame Number Example - Most Accurate
+timecode_list = [TimecodePair(f"{(68301/(30000/1001))}", f"{(81845/(30000/1001))}")]
 
 def build_ffmpeg_filter(timecode_list, stream_info, merge_audio=True):
 
