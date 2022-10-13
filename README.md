@@ -7,10 +7,6 @@ Trim and concatenate videos files using Final Cut Pro and FFmpeg.
 
 For the time being / proof of concept stage, the timecode values need to be hardcoded into the `timecode_list` variable, which contains a list of named tuples, representing each timecode range to keep. These timecode values are inclusive, and everything not included in a timecode range will be trimmed from the final output file.
 
-This script is currently still in progress, but should work fine in most scenarios where stream 0 is the primary video stream and there is at least.
-
-For the time being / proof of concept stage, the timecode values need to be hardcoded into the `timecode_list` variable, which contains a list of named tuples, representing each timecode range to keep. These timecode values are inclusive, and everything not included in a timecode range will be trimmed from the final output file.
-
 ### Next steps:
 
 - Integrate with FCPX Marker Tool, allowing for a marker list to be used as input for timecode ranges
