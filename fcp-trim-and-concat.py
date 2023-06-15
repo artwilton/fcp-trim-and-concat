@@ -23,10 +23,11 @@ def build_ffmpeg_filter(timecode_list, stream_info, merge_audio=True):
 
         while current_stream_index < len(stream_info):
             codec_type = stream_info[current_stream_index]['codec_type']
-            trim_string = build_trim_string(current_stream_index, timecode.in_point, timecode.out_point, codec_type)
-            label_string = build_label_string(clip_number, codec_type, current_stream_index)
-            filter_command = Filter(trim_string, label_string)
-            filter_commands_list.append(''.join(filter_command))
+            if (codec_type == 'audio') or (codec_type == 'video'):
+                trim_string = build_trim_string(current_stream_index, timecode.in_point, timecode.out_point, codec_type)
+                label_string = build_label_string(clip_number, codec_type, current_stream_index)
+                filter_command = Filter(trim_string, label_string)
+                filter_commands_list.append(''.join(filter_command))
             
             if (codec_type == 'audio') and (merge_audio):
                 audio_merge_list.append(filter_command.label)
